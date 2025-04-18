@@ -1,38 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>QR Code Scanner</title>
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <title>QR Scanner App</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <script defer src="script.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 1em; }
+    label { display: block; margin-top: 8px; }
+    input, textarea { width: 100%; }
+    #history-list li { margin: 4px 0; }
+    button { margin: 4px 4px 4px 0; }
+  </style>
 </head>
 <body>
-  <h1>QR Code Scanner App</h1>
-  
-  <div id="reader" style="width:300px;"></div>
-  <p><strong>Scanned QR:</strong> <span id="qr-result">None</span></p>
+  <h2>QR Scanner</h2>
+  <div id="reader" style="width: 100%; max-width: 400px;"></div>
+  <p>Last Scanned: <span id="qr-result">None</span></p>
 
   <form id="data-form">
-    <input type="hidden" id="scan-date" name="scanDate" />
-    <input type="text" id="qr-code" name="qrCode" placeholder="QR Code" required readonly />
-    <input type="text" name="origin" placeholder="Origin" required />
-    <input type="text" name="destination" placeholder="Destination" required />
-    <input type="text" name="needle" placeholder="Needle" required />
-    <input type="text" name="bobbin" placeholder="Bobbin" required />
-    <input type="text" name="housing" placeholder="Housing" required />
-    <input type="text" name="folder" placeholder="Folder" required />
-    <input type="text" name="sender" placeholder="Sender" required />
-    <input type="text" name="recipient" placeholder="Recipient" required />
-    <textarea name="notes" placeholder="Notes"></textarea>
-    <button type="button" id="add-entry">Add to History</button>
+    <input type="hidden" name="scanDate" id="scan-date">
+    <label>QR Code: <input type="text" name="qrCode" id="qr-code" readonly></label>
+    <label>Origin: <input type="text" name="origin"></label>
+    <label>Destination: <input type="text" name="destination"></label>
+    <label>Needle: <input type="text" name="needle"></label>
+    <label>Bobbin: <input type="text" name="bobbin"></label>
+    <label>Housing: <input type="text" name="housing"></label>
+    <label>Folder: <input type="text" name="folder"></label>
+    <label>Sender: <input type="text" name="sender"></label>
+    <label>Recipient: <input type="text" name="recipient"></label>
+    <label>Notes: <textarea name="notes"></textarea></label>
   </form>
 
-  <h2>History</h2>
-  <ul id="history-list"></ul>
-
+  <button id="add-entry">Add Entry</button>
   <button id="submit-all">Submit All</button>
+  <button onclick="startScanning()">Restart Scanner</button>
 
-  <script src="script.js"></script>
+  <h3>History</h3>
+  <ul id="history-list"></ul>
 </body>
 </html>
