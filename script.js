@@ -10,16 +10,21 @@ const entries = [];
 
 // Initialize QR Scanner
 const html5QrCode = new Html5Qrcode("reader");
-Html5Qrcode.getCameras().then(devices => {
+
+Html5QrCode.getCameras().then(devices => {
   if (devices && devices.length) {
+    // Prefer back camera for mobile devices
+    const backCamera = devices.find(device => device.label.toLowerCase().includes('back'));
+    const selectedCamera = backCamera || devices[0];  // If no back camera, use the first available camera
+
     html5QrCode.start(
-      devices[0].id,
+      selectedCamera.id,
       { fps: 10, qrbox: 250 },
       qrCodeMessage => {
-        qrResult.textContent = qrCodeMessage;
-        qrInput.value = qrCodeMessage;
-        scanDate.value = new Date().toISOString();
-        html5QrCode.stop();
+        qrResult.textContent = qrCodeMessage;  // Update the QR result display
+        qrInput.value = qrCodeMessage;         // Set the QR code input field
+        scanDate.value = new Date().toISOString();  // Set the scan date
+        html5QrCode.stop();  // Stop the scanner after the QR code is captured
       }
     );
   }
@@ -27,12 +32,12 @@ Html5Qrcode.getCameras().then(devices => {
 
 // Add entry to history
 addBtn.addEventListener("click", () => {
-  const data = Object.fromEntries(new FormData(form));
+  const data = Object.fromEntries(new FormData(form));  // Get form data
   if (!data.qrCode) {
     alert("Please scan a QR code first.");
     return;
   }
-  entries.push(data);
+  entries.push(data);  // Add the new entry to the history
 
   const li = document.createElement("li");
   li.textContent = `${data.scanDate} - ${data.qrCode}`;
@@ -40,14 +45,14 @@ addBtn.addEventListener("click", () => {
   removeBtn.textContent = "Remove";
   removeBtn.onclick = () => {
     const index = [...historyList.children].indexOf(li);
-    entries.splice(index, 1);
+    entries.splice(index, 1);  // Remove the entry from history
     historyList.removeChild(li);
   };
   li.appendChild(removeBtn);
-  historyList.appendChild(li);
+  historyList.appendChild(li);  // Add the entry to the history list
 
-  form.reset();
-  qrResult.textContent = "None";
+  form.reset();  // Reset the form for the next entry
+  qrResult.textContent = "None";  // Clear the QR result display
 });
 
 // Submit all entries to Google Sheets
@@ -67,8 +72,8 @@ submitBtn.addEventListener("click", async () => {
     const result = await response.json();
     if (result.result === "success") {
       alert("Data submitted successfully!");
-      entries.length = 0;
-      historyList.innerHTML = "";
+      entries.length = 0;  // Clear entries after successful submission
+      historyList.innerHTML = "";  // Clear the history list
     } else {
       alert("Submission failed. Try again.");
     }
