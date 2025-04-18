@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QR Code Scanner</title>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>QR Code Scanner App</h1>
+  
+  <div id="reader" style="width:300px;"></div>
+  <p><strong>Scanned QR:</strong> <span id="qr-result">None</span></p>
+
+  <form id="data-form">
+    <input type="hidden" id="scan-date" name="scanDate" />
+    <input type="text" id="qr-code" name="qrCode" placeholder="QR Code" required readonly />
+    <input type="text" name="origin" placeholder="Origin" required />
+    <input type="text" name="destination" placeholder="Destination" required />
+    <input type="text" name="needle" placeholder="Needle" required />
+    <input type="text" name="bobbin" placeholder="Bobbin" required />
+    <input type="text" name="housing" placeholder="Housing" required />
+    <input type="text" name="folder" placeholder="Folder" required />
+    <input type="text" name="sender" placeholder="Sender" required />
+    <input type="text" name="recipient" placeholder="Recipient" required />
+    <textarea name="notes" placeholder="Notes"></textarea>
+    <button type="button" id="add-entry">Add to History</button>
+  </form>
+
+  <h2>History</h2>
+  <ul id="history-list"></ul>
+
+  <button id="submit-all">Submit All</button>
+
+  <script src="script.js"></script>
+</body>
+</html>
