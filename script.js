@@ -7,6 +7,7 @@ const addBtn = document.getElementById("add-entry");
 const submitBtn = document.getElementById("submit-all");
 
 const entries = [];
+let currentEditIndex = null;  // To track the entry being edited
 
 // Initialize QR Scanner
 const html5QrCode = new Html5Qrcode("reader");
@@ -30,26 +31,59 @@ Html5QrCode.getCameras().then(devices => {
   }
 });
 
-// Add entry to history
+// Add or Edit entry to history
 addBtn.addEventListener("click", () => {
   const data = Object.fromEntries(new FormData(form));  // Get form data
   if (!data.qrCode) {
     alert("Please scan a QR code first.");
     return;
   }
-  entries.push(data);  // Add the new entry to the history
 
-  const li = document.createElement("li");
-  li.textContent = `${data.scanDate} - ${data.qrCode}`;
-  const removeBtn = document.createElement("button");
-  removeBtn.textContent = "Remove";
-  removeBtn.onclick = () => {
-    const index = [...historyList.children].indexOf(li);
-    entries.splice(index, 1);  // Remove the entry from history
-    historyList.removeChild(li);
-  };
-  li.appendChild(removeBtn);
-  historyList.appendChild(li);  // Add the entry to the history list
+  if (currentEditIndex !== null) {
+    // Edit the existing entry
+    entries[currentEditIndex] = data;
+    historyList.children[currentEditIndex].firstChild.textContent = `${data.scanDate} - ${data.qrCode}`;
+    currentEditIndex = null;  // Reset edit mode
+  } else {
+    // Add the new entry to history
+    entries.push(data);
+
+    const li = document.createElement("li");
+    li.textContent = `${data.scanDate} - ${data.qrCode}`;
+
+    // Add Edit and Remove buttons
+    const editBtn = document.createElement("button");
+    editBtn.textContent = "Edit";
+    editBtn.onclick = () => {
+      // Populate form with the entry to edit
+      form.querySelector("input[name='scanDate']").value = data.scanDate;
+      form.querySelector("input[name='qrCode']").value = data.qrCode;
+      form.querySelector("input[name='origin']").value = data.origin;
+      form.querySelector("input[name='destination']").value = data.destination;
+      form.querySelector("input[name='needle']").value = data.needle;
+      form.querySelector("input[name='bobbin']").value = data.bobbin;
+      form.querySelector("input[name='housing']").value = data.housing;
+      form.querySelector("input[name='folder']").value = data.folder;
+      form.querySelector("input[name='sender']").value = data.sender;
+      form.querySelector("input[name='recipient']").value = data.recipient;
+      form.querySelector("textarea[name='notes']").value = data.notes;
+
+      // Set current index to indicate edit mode
+      currentEditIndex = [...historyList.children].indexOf(li);
+    };
+
+    const removeBtn = document.createElement("button");
+    removeBtn.textContent = "Remove";
+    removeBtn.onclick = () => {
+      const index = [...historyList.children].indexOf(li);
+      entries.splice(index, 1);  // Remove the entry from history
+      historyList.removeChild(li);
+    };
+
+    li.appendChild(editBtn);
+    li.appendChild(removeBtn);
+    historyList.appendChild(li);  // Add the entry to the history list
+  }
 
   form.reset();  // Reset the form for the next entry
   qrResult.textContent = "None";  // Clear the QR result display
