@@ -42,34 +42,6 @@
     button:hover {
       background-color: #2980b9;
     }
-    ul {
-      list-style-type: none;
-      padding-left: 0;
-    }
-    li {
-      background-color: #ecf0f1;
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 5px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    li.editing {
-      border: 2px dashed #2980b9;
-      background-color: #d6eaf8;
-    }
-    li button {
-      width: auto;
-      margin-left: 5px;
-      background-color: #e74c3c;
-    }
-    li button:hover {
-      background-color: #c0392b;
-    }
-    #submit-all {
-      margin-top: 20px;
-    }
   </style>
 </head>
 <body>
@@ -114,33 +86,24 @@
       Html5Qrcode.getCameras().then(devices => {
         if (devices && devices.length) {
           const frontCamera = devices.find(d => d.label?.toLowerCase().includes("front"));
-          const selectedCamera = frontCamera || devices[0]; // Default to front camera if available
+          const selectedCamera = frontCamera || devices[0];
 
           html5QrCode.start(
             { deviceId: { exact: selectedCamera.id } },
-            {
-              fps: 10, // Frame rate
-              qrbox: 250, // The size of the QR code box
-              formatsToSupport: ["QR_CODE"],  // Focus on QR code format only
-              aspectRatio: 1.0, // Adjust aspect ratio to fit the screen
-            },
+            { fps: 10, qrbox: 250 },
             qrCodeMessage => {
               qrResult.textContent = qrCodeMessage;
               qrInput.value = qrCodeMessage;
               scanDate.value = new Date().toISOString();
-              form.querySelector("input[name='origin']").focus();
             },
             errorMessage => {
-              console.error("QR scanning error:", errorMessage);
-              // Display a more informative error message if scanning fails
-              alert("Error during QR code scanning: " + errorMessage);
+              console.warn("QR scanning error:", errorMessage);
             }
           ).catch(err => {
             console.error("Failed to start scanner:", err);
-            alert("Failed to start the scanner. Please check camera access.");
           });
         } else {
-          alert("No cameras found. Please ensure a camera is connected.");
+          alert("No cameras found.");
         }
       }).catch(err => {
         console.error("Camera error:", err);
@@ -157,51 +120,24 @@
         return;
       }
 
-      if (currentEditIndex !== null) {
-        entries[currentEditIndex] = data;
-        const li = historyList.children[currentEditIndex];
-        li.firstChild.textContent = `${data.scanDate} - ${data.qrCode}`;
-        li.classList.remove("editing");
-        currentEditIndex = null;
-      } else {
-        entries.push(data);
-        const li = document.createElement("li");
-        const text = document.createTextNode(`${data.scanDate} - ${data.qrCode}`);
-        li.appendChild(text);
+      // Add entry to history
+      entries.push(data);
+      const li = document.createElement("li");
+      const text = document.createTextNode(`${data.scanDate} - ${data.qrCode}`);
+      li.appendChild(text);
 
-        const editBtn = document.createElement("button");
-        editBtn.textContent = "Edit";
-        editBtn.onclick = () => {
-          form.querySelector("input[name='scanDate']").value = data.scanDate;
-          form.querySelector("input[name='qrCode']").value = data.qrCode;
-          form.querySelector("input[name='origin']").value = data.origin;
-          form.querySelector("input[name='destination']").value = data.destination;
-          form.querySelector("input[name='needle']").value = data.needle;
-          form.querySelector("input[name='bobbin']").value = data.bobbin;
-          form.querySelector("input[name='housing']").value = data.housing;
-          form.querySelector("input[name='folder']").value = data.folder;
-          form.querySelector("input[name='sender']").value = data.sender;
-          form.querySelector("input[name='recipient']").value = data.recipient;
-          form.querySelector("textarea[name='notes']").value = data.notes;
-          [...historyList.children].forEach(item => item.classList.remove("editing"));
-          li.classList.add("editing");
-          currentEditIndex = [...historyList.children].indexOf(li);
-        };
+      const removeBtn = document.createElement("button");
+      removeBtn.textContent = "Remove";
+      removeBtn.onclick = () => {
+        if (confirm("Are you sure you want to delete this entry?")) {
+          const index = [...historyList.children].indexOf(li);
+          entries.splice(index, 1);
+          historyList.removeChild(li);
+        }
+      };
 
-        const removeBtn = document.createElement("button");
-        removeBtn.textContent = "Remove";
-        removeBtn.onclick = () => {
-          if (confirm("Are you sure you want to delete this entry?")) {
-            const index = [...historyList.children].indexOf(li);
-            entries.splice(index, 1);
-            historyList.removeChild(li);
-          }
-        };
-
-        li.appendChild(editBtn);
-        li.appendChild(removeBtn);
-        historyList.appendChild(li);
-      }
+      li.appendChild(removeBtn);
+      historyList.appendChild(li);
 
       form.reset();
       qrResult.textContent = "None";
@@ -217,7 +153,7 @@
       submitBtn.textContent = "Submitting...";
 
       try {
-        const response = await fetch("https://script.google.com/macros/s/AKfycbyj7K9jRe3sNyeobspRCCjckYnuxDF15Y1SG44P8XD6e-fK6yFvr8PMU2xP9LnKumLa/exec", {
+        const response = await fetch("YOUR_GOOGLE_APPS_SCRIPT_URL", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ entries })
