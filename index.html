@@ -118,7 +118,11 @@
 
           html5QrCode.start(
             { deviceId: { exact: selectedCamera.id } },
-            { fps: 10, qrbox: 250 },
+            {
+              fps: 10, 
+              qrbox: 250,
+              formatsToSupport: ["QR_CODE"]  // Explicitly specify QR_CODE format
+            },
             qrCodeMessage => {
               qrResult.textContent = qrCodeMessage;
               qrInput.value = qrCodeMessage;
