@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>QR Code Scanner App</title>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -220,20 +221,17 @@
       submitBtn.textContent = "Submitting...";
 
       try {
-        const response = await fetch("https://script.google.com/macros/s/AKfycbwKrFOAGF7M9P479FkNwl1YrwKh1SbtGXJuwrAClNJJj_KrTpbwE2S8_89LVyGYRkOSiQ/exec", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ entries })
-        });
+        const response = await axios.post(
+          "https://script.google.com/macros/s/AKfycbwKrFOAGF7M9P479FkNwl1YrwKh1SbtGXJuwrAClNJJj_KrTpbwE2S8_89LVyGYRkOSiQ/exec",
+          { entries }
+        );
 
-        const result = await response.json();
-
-        if (result.result === "success") {
+        if (response.data.result === "success") {
           alert("Data submitted!");
           entries.length = 0;
           historyList.innerHTML = "";
         } else {
-          throw new Error(result.message || "Unknown error");
+          throw new Error(response.data.message || "Unknown error");
         }
       } catch (error) {
         console.error("Submission failed:", error);
