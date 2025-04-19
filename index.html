@@ -114,14 +114,15 @@
       Html5Qrcode.getCameras().then(devices => {
         if (devices && devices.length) {
           const frontCamera = devices.find(d => d.label?.toLowerCase().includes("front"));
-          const selectedCamera = frontCamera || devices[0]; // default to first available if front camera is not found
+          const selectedCamera = frontCamera || devices[0]; // Default to front camera if available
 
           html5QrCode.start(
             { deviceId: { exact: selectedCamera.id } },
             {
-              fps: 10, 
-              qrbox: 250,
-              formatsToSupport: ["QR_CODE"]  // Explicitly specify QR_CODE format
+              fps: 10, // Frame rate
+              qrbox: 250, // The size of the QR code box
+              formatsToSupport: ["QR_CODE"],  // Focus on QR code format only
+              aspectRatio: 1.0, // Adjust aspect ratio to fit the screen
             },
             qrCodeMessage => {
               qrResult.textContent = qrCodeMessage;
@@ -130,16 +131,20 @@
               form.querySelector("input[name='origin']").focus();
             },
             errorMessage => {
-              console.warn("QR scanning error:", errorMessage);
+              console.error("QR scanning error:", errorMessage);
+              // Display a more informative error message if scanning fails
+              alert("Error during QR code scanning: " + errorMessage);
             }
           ).catch(err => {
             console.error("Failed to start scanner:", err);
+            alert("Failed to start the scanner. Please check camera access.");
           });
         } else {
-          alert("No cameras found.");
+          alert("No cameras found. Please ensure a camera is connected.");
         }
       }).catch(err => {
         console.error("Camera error:", err);
+        alert("Error accessing the camera.");
       });
     }
 
