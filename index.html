@@ -42,6 +42,34 @@
     button:hover {
       background-color: #2980b9;
     }
+    ul {
+      list-style-type: none;
+      padding-left: 0;
+    }
+    li {
+      background-color: #ecf0f1;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    li.editing {
+      border: 2px dashed #2980b9;
+      background-color: #d6eaf8;
+    }
+    li button {
+      width: auto;
+      margin-left: 5px;
+      background-color: #e74c3c;
+    }
+    li button:hover {
+      background-color: #c0392b;
+    }
+    #submit-all {
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
@@ -82,72 +110,92 @@
 
     const html5QrCode = new Html5Qrcode("reader");
 
-    function startScanning() {
-      Html5Qrcode.getCameras().then(devices => {
-        if (devices && devices.length) {
-          const frontCamera = devices.find(d => d.label?.toLowerCase().includes("front"));
-          const selectedCamera = frontCamera || devices[0];
+    async function startScanning() {
+      try {
+        const devices = await Html5Qrcode.getCameras();
+        if (!devices.length) throw new Error("No camera found");
 
-          html5QrCode.start(
-            { deviceId: { exact: selectedCamera.id } },
-            { fps: 10, qrbox: 250 },
-            qrCodeMessage => {
-              qrResult.textContent = qrCodeMessage;
-              qrInput.value = qrCodeMessage;
-              scanDate.value = new Date().toISOString();
-            },
-            errorMessage => {
-              console.warn("QR scanning error:", errorMessage);
-            }
-          ).catch(err => {
-            console.error("Failed to start scanner:", err);
-          });
-        } else {
-          alert("No cameras found.");
-        }
-      }).catch(err => {
-        console.error("Camera error:", err);
-        alert("Error accessing the camera.");
-      });
+        const frontCamera = devices.find(d => d.label.toLowerCase().includes("front"));
+        const selectedCamera = frontCamera || devices[0];
+
+        await html5QrCode.start(
+          { deviceId: { exact: selectedCamera.id } },
+          { fps: 10, qrbox: 250 },
+          qrCodeMessage => {
+            qrResult.textContent = qrCodeMessage;
+            qrInput.value = qrCodeMessage;
+            scanDate.value = new Date().toISOString();
+            form.querySelector("input[name='origin']").focus();
+          },
+          error => {}
+        );
+      } catch (err) {
+        alert("Unable to access camera: " + err.message);
+      }
     }
 
     startScanning();
 
     addBtn.addEventListener("click", () => {
       const data = Object.fromEntries(new FormData(form));
-      if (!data.qrCode) {
-        alert("Please scan a QR code first.");
-        return;
+      if (!data.qrCode) return alert("Please scan a QR code first.");
+
+      if (currentEditIndex !== null) {
+        entries[currentEditIndex] = data;
+        updateHistoryItem(currentEditIndex);
+        currentEditIndex = null;
+      } else {
+        entries.push(data);
+        addHistoryItem(data);
       }
-
-      // Add entry to history
-      entries.push(data);
-      const li = document.createElement("li");
-      const text = document.createTextNode(`${data.scanDate} - ${data.qrCode}`);
-      li.appendChild(text);
-
-      const removeBtn = document.createElement("button");
-      removeBtn.textContent = "Remove";
-      removeBtn.onclick = () => {
-        if (confirm("Are you sure you want to delete this entry?")) {
-          const index = [...historyList.children].indexOf(li);
-          entries.splice(index, 1);
-          historyList.removeChild(li);
-        }
-      };
-
-      li.appendChild(removeBtn);
-      historyList.appendChild(li);
 
       form.reset();
       qrResult.textContent = "None";
     });
 
+    function addHistoryItem(data) {
+      const li = document.createElement("li");
+      const index = entries.length - 1;
+      li.textContent = `${data.scanDate} - ${data.qrCode}`;
+
+      const editBtn = document.createElement("button");
+      editBtn.textContent = "Edit";
+      editBtn.onclick = () => {
+        fillForm(data);
+        currentEditIndex = index;
+        [...historyList.children].forEach(item => item.classList.remove("editing"));
+        li.classList.add("editing");
+      };
+
+      const removeBtn = document.createElement("button");
+      removeBtn.textContent = "Remove";
+      removeBtn.onclick = () => {
+        if (confirm("Are you sure you want to delete this entry?")) {
+          entries.splice(index, 1);
+          historyList.removeChild(li);
+        }
+      };
+
+      li.appendChild(editBtn);
+      li.appendChild(removeBtn);
+      historyList.appendChild(li);
+    }
+
+    function updateHistoryItem(index) {
+      const li = historyList.children[index];
+      li.firstChild.textContent = `${entries[index].scanDate} - ${entries[index].qrCode}`;
+      li.classList.remove("editing");
+    }
+
+    function fillForm(data) {
+      Object.entries(data).forEach(([key, value]) => {
+        const field = form.querySelector(`[name='${key}']`);
+        if (field) field.value = value;
+      });
+    }
+
     submitBtn.addEventListener("click", async () => {
-      if (entries.length === 0) {
-        alert("No entries to submit.");
-        return;
-      }
+      if (!entries.length) return alert("No entries to submit.");
 
       submitBtn.disabled = true;
       submitBtn.textContent = "Submitting...";
@@ -160,20 +208,20 @@
         });
 
         const result = await response.json();
-        submitBtn.disabled = false;
-        submitBtn.textContent = "Submit All";
 
         if (result.result === "success") {
-          alert("Data submitted successfully!");
+          alert("Data submitted!");
           entries.length = 0;
           historyList.innerHTML = "";
         } else {
-          alert("Submission failed. Try again.");
+          throw new Error(result.message || "Unknown error");
         }
-      } catch (err) {
+      } catch (error) {
+        console.error("Submission failed:", error);
+        alert("Failed to submit data: " + error.message);
+      } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = "Submit All";
-        alert("Error submitting data: " + err.message);
       }
     });
   </script>
