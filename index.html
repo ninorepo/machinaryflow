@@ -55,6 +55,10 @@
       justify-content: space-between;
       align-items: center;
     }
+    li.editing {
+      border: 2px dashed #2980b9;
+      background-color: #d6eaf8;
+    }
     li button {
       width: auto;
       margin-left: 5px;
@@ -108,7 +112,6 @@
 
     function startScanning() {
       Html5Qrcode.getCameras().then(devices => {
-        console.log("Available cameras:", devices);
         if (devices && devices.length) {
           const backCamera = devices.find(d => d.label?.toLowerCase().includes("back"));
           const selectedCamera = backCamera || devices[0];
@@ -120,6 +123,7 @@
               qrResult.textContent = qrCodeMessage;
               qrInput.value = qrCodeMessage;
               scanDate.value = new Date().toISOString();
+              form.querySelector("input[name='origin']").focus();
             },
             errorMessage => {
               console.warn("QR scanning error:", errorMessage);
@@ -148,6 +152,7 @@
         entries[currentEditIndex] = data;
         const li = historyList.children[currentEditIndex];
         li.firstChild.textContent = `${data.scanDate} - ${data.qrCode}`;
+        li.classList.remove("editing");
         currentEditIndex = null;
       } else {
         entries.push(data);
@@ -169,15 +174,19 @@
           form.querySelector("input[name='sender']").value = data.sender;
           form.querySelector("input[name='recipient']").value = data.recipient;
           form.querySelector("textarea[name='notes']").value = data.notes;
+          [...historyList.children].forEach(item => item.classList.remove("editing"));
+          li.classList.add("editing");
           currentEditIndex = [...historyList.children].indexOf(li);
         };
 
         const removeBtn = document.createElement("button");
         removeBtn.textContent = "Remove";
         removeBtn.onclick = () => {
-          const index = [...historyList.children].indexOf(li);
-          entries.splice(index, 1);
-          historyList.removeChild(li);
+          if (confirm("Are you sure you want to delete this entry?")) {
+            const index = [...historyList.children].indexOf(li);
+            entries.splice(index, 1);
+            historyList.removeChild(li);
+          }
         };
 
         li.appendChild(editBtn);
@@ -195,14 +204,20 @@
         return;
       }
 
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Submitting...";
+
       try {
-        const response = await fetch("https://script.google.com/macros/s/AKfycbwWFsD3y0QONRCS0y5NIurhLV-jlaI-FguV4bRW-MRXA_F0fOQAXCuGVpTft53-wAE0/exec", {
+        const response = await fetch("YOUR_GOOGLE_APPS_SCRIPT_URL", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ entries })
         });
 
         const result = await response.json();
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Submit All";
+
         if (result.result === "success") {
           alert("Data submitted successfully!");
           entries.length = 0;
@@ -211,6 +226,8 @@
           alert("Submission failed. Try again.");
         }
       } catch (err) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Submit All";
         alert("Error submitting data: " + err.message);
       }
     });
