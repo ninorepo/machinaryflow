@@ -63,31 +63,52 @@
 </head>
 <body>
   <h1>QR Code Scanner App</h1>
-  <div>
-    <label for="camera-select">Select Camera:</label>
-    <select id="camera-select"><option value="">Select a Camera</option></select>
+
+  <!-- Navigation Buttons -->
+  <div style="margin: 10px 0;">
+    <button onclick="showScanner()">📷 Back to Scanner</button>
+    <button onclick="showSheet()">📄 View Sheet</button>
   </div>
-  <div id="reader"></div>
-  <div>QR Result: <span id="qr-result">None</span></div>
 
-  <form id="data-form">
-    <input type="hidden" id="scan-date" name="scanDate" />
-    <input type="text" id="qr-code" name="qrCode" placeholder="QR Code" readonly /><br />
-    <input type="text" name="origin" placeholder="Origin" required /><br />
-    <input type="text" name="destination" placeholder="Destination" required /><br />
-    <input type="text" name="needle" placeholder="Needle" /><br />
-    <input type="text" name="bobbin" placeholder="Bobbin" /><br />
-    <input type="text" name="housing" placeholder="Housing" /><br />
-    <input type="text" name="folder" placeholder="Folder" /><br />
-    <input type="text" name="sender" placeholder="Sender" /><br />
-    <input type="text" name="recipient" placeholder="Recipient" /><br />
-    <textarea name="notes" placeholder="Notes"></textarea><br />
-    <button type="button" id="add-entry">Add Entry</button>
-  </form>
+  <!-- Scanner Section -->
+  <div id="scanner-section">
+    <div>
+      <label for="camera-select">Select Camera:</label>
+      <select id="camera-select"><option value="">Select a Camera</option></select>
+    </div>
+    <div id="reader"></div>
+    <div>QR Result: <span id="qr-result">None</span></div>
 
-  <h2>History</h2>
-  <ul id="history-list"></ul>
-  <button id="submit-all">Submit All</button>
+    <form id="data-form">
+      <input type="hidden" id="scan-date" name="scanDate" />
+      <input type="text" id="qr-code" name="qrCode" placeholder="QR Code" readonly /><br />
+      <input type="text" name="origin" placeholder="Origin" required /><br />
+      <input type="text" name="destination" placeholder="Destination" required /><br />
+      <input type="text" name="needle" placeholder="Needle" /><br />
+      <input type="text" name="bobbin" placeholder="Bobbin" /><br />
+      <input type="text" name="housing" placeholder="Housing" /><br />
+      <input type="text" name="folder" placeholder="Folder" /><br />
+      <input type="text" name="sender" placeholder="Sender" /><br />
+      <input type="text" name="recipient" placeholder="Recipient" /><br />
+      <textarea name="notes" placeholder="Notes"></textarea><br />
+      <button type="button" id="add-entry">Add Entry</button>
+    </form>
+
+    <h2>History</h2>
+    <ul id="history-list"></ul>
+    <button id="submit-all">Submit All</button>
+  </div>
+
+  <!-- Embedded Sheet Section (hidden initially) -->
+  <div id="sheet-section" style="display: none;">
+    <iframe 
+      id="sheet-iframe"
+      src="https://docs.google.com/spreadsheets/d/1t0awlxbWCuwGsraqLM5lNtGDOx1LzXLeNE7n7Mw5aag/pubhtml?widget=true&amp;headers=false"
+      width="100%" 
+      height="600px" 
+      style="border: 1px solid #ccc; border-radius: 8px;">
+    </iframe>
+  </div>
 
   <script>
     const qrResult = document.getElementById("qr-result");
@@ -238,6 +259,16 @@
         submitBtn.textContent = "Submit All";
       }
     });
+
+    function showSheet() {
+      document.getElementById("scanner-section").style.display = "none";
+      document.getElementById("sheet-section").style.display = "block";
+    }
+
+    function showScanner() {
+      document.getElementById("sheet-section").style.display = "none";
+      document.getElementById("scanner-section").style.display = "block";
+    }
   </script>
 </body>
 </html>
