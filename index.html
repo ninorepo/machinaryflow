@@ -74,13 +74,19 @@
 </head>
 <body>
   <h1>QR Code Scanner App</h1>
+  <div>
+    <label for="camera-select">Select Camera:</label>
+    <select id="camera-select">
+      <option value="">Select a Camera</option>
+    </select>
+  </div>
   <div id="reader"></div>
   <div>QR Result: <span id="qr-result">None</span></div>
   <form id="data-form">
     <input type="hidden" id="scan-date" name="scanDate" />
     <input type="text" id="qr-code" name="qrCode" placeholder="QR Code" readonly /><br />
-    <input type="text" name="origin" placeholder="Origin" /><br />
-    <input type="text" name="destination" placeholder="Destination" /><br />
+    <input type="text" name="origin" placeholder="Origin" required /><br />
+    <input type="text" name="destination" placeholder="Destination" required /><br />
     <input type="text" name="needle" placeholder="Needle" /><br />
     <input type="text" name="bobbin" placeholder="Bobbin" /><br />
     <input type="text" name="housing" placeholder="Housing" /><br />
@@ -104,6 +110,7 @@
     const historyList = document.getElementById("history-list");
     const addBtn = document.getElementById("add-entry");
     const submitBtn = document.getElementById("submit-all");
+    const cameraSelect = document.getElementById("camera-select");
 
     const entries = [];
     let currentEditIndex = null;
@@ -115,11 +122,19 @@
         const devices = await Html5Qrcode.getCameras();
         if (!devices.length) throw new Error("No camera found");
 
-        const frontCamera = devices.find(d => d.label.toLowerCase().includes("front"));
-        const selectedCamera = frontCamera || devices[0];
+        // Populate the camera select dropdown
+        cameraSelect.innerHTML = '<option value="">Select a Camera</option>';
+        devices.forEach(device => {
+          const option = document.createElement("option");
+          option.value = device.id;
+          option.textContent = device.label || "Camera " + device.id;
+          cameraSelect.appendChild(option);
+        });
+
+        const selectedCameraId = cameraSelect.value || devices[0].id;
 
         await html5QrCode.start(
-          { deviceId: { exact: selectedCamera.id } },
+          { deviceId: { exact: selectedCameraId } },
           { fps: 10, qrbox: 250 },
           qrCodeMessage => {
             qrResult.textContent = qrCodeMessage;
@@ -134,16 +149,20 @@
       }
     }
 
+    cameraSelect.addEventListener("change", startScanning);
     startScanning();
 
     addBtn.addEventListener("click", () => {
       const data = Object.fromEntries(new FormData(form));
       if (!data.qrCode) return alert("Please scan a QR code first.");
+      if (!data.origin || !data.destination) return alert("Origin and Destination are required.");
 
       if (currentEditIndex !== null) {
-        entries[currentEditIndex] = data;
-        updateHistoryItem(currentEditIndex);
-        currentEditIndex = null;
+        if (confirm("Are you sure you want to edit this entry?")) {
+          entries[currentEditIndex] = data;
+          updateHistoryItem(currentEditIndex);
+          currentEditIndex = null;
+        }
       } else {
         entries.push(data);
         addHistoryItem(data);
