@@ -100,9 +100,7 @@
   </div>
 
   <!-- Embedded Sheet Section (hidden initially) -->
-  <div id="sheet-section" style="display: none;">
-    <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vTRFuOKXK_I-_WNYGowyzSusLH0z32w7_wyyWYfRUSanD0x8hVFoikSXwkwiDHYpXLs1QOxMSYd0zgP/pubhtml?gid=0&amp;single=true&amp;widget=true&amp;headers=false"></iframe>
-  </div>
+
 
   <script>
     const qrResult = document.getElementById("qr-result");
@@ -254,10 +252,11 @@
       }
     });
 
-    function showSheet() {
-      document.getElementById("scanner-section").style.display = "none";
-      document.getElementById("sheet-section").style.display = "block";
-    }
+function showSheet() {
+  window.open("https://docs.google.com/spreadsheets/d/1t0awlxbWCuwGsraqLM5lNtGDOx1LzXLeNE7n7Mw5aag/edit?usp=sharing", "_blank");
+  document.getElementById("scanner-section").style.display = "none";
+  document.getElementById("sheet-section").style.display = "block";
+}
 
     function showScanner() {
       document.getElementById("sheet-section").style.display = "none";
