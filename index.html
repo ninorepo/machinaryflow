@@ -222,16 +222,19 @@
 
       try {
         const response = await axios.post(
-          "https://script.google.com/macros/s/AKfycbwKrFOAGF7M9P479FkNwl1YrwKh1SbtGXJuwrAClNJJj_KrTpbwE2S8_89LVyGYRkOSiQ/exec",
-          { entries }
+          "https://script.google.com/macros/s/AKfycbwKrFOAGF7M9P479FkNwl1YrwKh1SbtGXJuwrAClNJJj_KrTpbwE2S8_89LVyGYRkOSiQ/exec", 
+          { entries },
+          { headers: { "Content-Type": "application/json" } }
         );
 
-        if (response.data.result === "success") {
+        const result = response.data;
+
+        if (result.result === "success") {
           alert("Data submitted!");
           entries.length = 0;
           historyList.innerHTML = "";
         } else {
-          throw new Error(response.data.message || "Unknown error");
+          throw new Error(result.message || "Unknown error");
         }
       } catch (error) {
         console.error("Submission failed:", error);
