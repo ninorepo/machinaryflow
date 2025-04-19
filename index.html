@@ -113,8 +113,8 @@
     function startScanning() {
       Html5Qrcode.getCameras().then(devices => {
         if (devices && devices.length) {
-          const backCamera = devices.find(d => d.label?.toLowerCase().includes("back"));
-          const selectedCamera = backCamera || devices[0];
+          const frontCamera = devices.find(d => d.label?.toLowerCase().includes("front"));
+          const selectedCamera = frontCamera || devices[0]; // default to first available if front camera is not found
 
           html5QrCode.start(
             { deviceId: { exact: selectedCamera.id } },
@@ -208,7 +208,7 @@
       submitBtn.textContent = "Submitting...";
 
       try {
-        const response = await fetch("https://script.google.com/macros/s/AKfycbyj7K9jRe3sNyeobspRCCjckYnuxDF15Y1SG44P8XD6e-fK6yFvr8PMU2xP9LnKumLa/exec", {
+        const response = await fetch("YOUR_GOOGLE_APPS_SCRIPT_URL", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ entries })
